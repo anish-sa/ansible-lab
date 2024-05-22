@@ -1,0 +1,30 @@
+---
+- name: Install node and npm
+  ansible.builtin.apt:
+    pkg:
+     - npm
+     - nodejs
+    state: present
+    update_cache: true
+
+- name: Install pm2
+  community.general.npm:
+    name: pm2
+    global: true
+
+- name: Make website dir
+  shell: mkdir -p {{ app_dir }} && rm -rf {{ app_dir }}*
+
+- name: Copy files to remote
+  ansible.builtin.copy:
+    src: /media/anishs/restore/adex/lab/ansible/intro/test/
+    dest: "{{ app_dir }}"
+
+- name: Install npm dependencies
+  community.general.npm:
+    path: "{{ app_dir }}"
+ 
+- name: Start pm2
+  command:
+    cmd: pm2 start -f index.js
+    chdir: "{{ app_dir }}"
