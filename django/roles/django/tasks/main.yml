@@ -1,0 +1,37 @@
+---
+- name: Create dir for application
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+
+- name: Set target python version in first directory
+  ansible.builtin.shell:
+    cmd: "pyenv local {{ python_version }}"
+    chdir: "{{ app_dir }}"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
+
+- name: Copy files to remote
+  ansible.builtin.copy:
+    src: /media/anishs/restore/adex/new/django
+    dest: "{{ app_dir }}"
+
+- name: Install virtualenv
+  pip:
+    name: virtualenv
+    executable: pip3
+
+- name: Set python virual env
+  command:
+    cmd: virtualenv {{ app_dir }} -p python3
+    creates: "/var/www/app"
+
+
+# - name: Install npm dependencies
+#   community.general.npm:
+#     path: "{{ app_dir }}"
+ 
+# - name: Start pm2
+#   command:
+#     cmd: pm2 start -f index.js
+#     chdir: "{{ app_dir }}"
