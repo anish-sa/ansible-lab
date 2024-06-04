@@ -67,19 +67,19 @@
     mode: '0555'
 
 - name: Run MakeMigrations
-  django_manage:
+  ansible.community.django_manage:
     command: makemigrations
     app_path: "{{ app_dir }}"
     virtualenv: "{{ ansible_env.HOME }}/.pyenv/versions/{{ venv_name }}"
 
 - name: Run Migrations
-  django_manage:
+  ansible.community.django_manage:
     command: migrate
     app_path: "{{ app_dir }}"
     virtualenv: "{{ ansible_env.HOME }}/.pyenv/versions/{{ venv_name }}"
 
 - name: install django-app systemd unit file
-  template:
+  ansible.builtin.template:
     src: django-app.j2
     dest: /etc/systemd/system/django-app.service
   notify: start django
