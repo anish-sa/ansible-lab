@@ -1,21 +1,21 @@
 ---
-# - name: Install mysql
-#   ansible.builtin.apt:
-#     pkg:
-#      - mysql-client
-#      - mysql-server
-#      - python3-dev
-#      - libmysqlclient-dev
-#      - python3-mysqldb
-#     state: present
-#     update_cache: true
+- name: Install mysql
+  ansible.builtin.apt:
+    pkg:
+     - mysql-client
+     - mysql-server
+     - python3-dev
+     - libmysqlclient-dev
+     - python3-mysqldb
+    state: present
+    update_cache: true
   
 - name: Create mysql database
   community.mysql.mysql_db:
-    name: dg_da
+    name: "{{ db_name }}"
 
 - name: Create mysql user
   community.mysql.mysql_user:
-    name: dg_user
-    password: pass1234
-    priv: 'dg_da.*:ALL'
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
+    priv: '{{ db_name }}.*:ALL'

@@ -19,6 +19,8 @@
      - libxmlsec1-dev
      - libffi-dev
      - liblzma-dev
+     - python3-venv
+     - gcc-10
     state: present
     update_cache: true
 
@@ -36,6 +38,7 @@
 - name: Install required python version
   ansible.builtin.command:
     cmd: "pyenv install {{ python_version }}"
-    creates: "{{ ansible_env.HOME }}/.pyenv/versions/{{ python_version }}.*"
+    creates: "{{ ansible_env.HOME }}/.pyenv/versions/{{ python_version }}"
   environment:
     PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
+    CC: "gcc-10"

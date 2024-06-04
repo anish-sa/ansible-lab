@@ -1,3 +1,5 @@
 ---
-app_dir: /var/www/
+app_base_dir: /var/www
+app_dir: /var/www/django
 python_version: "3.7.2"
+venv_name: app

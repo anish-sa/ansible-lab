@@ -4,7 +4,7 @@ regions:
 filters:
   instance-state-name: running
   tag:owner: anish.sapkota
-  tag:Name: ansible_anish* 
+  tag:Name: ansible_anish_django* 
 hostnames:
   - instance-id
 
