@@ -1,0 +1,6 @@
+---
+- name: start django
+  ansible.builtin.service:
+    name: django-app
+    state: restarted
+    daemon_reload: true

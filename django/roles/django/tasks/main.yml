@@ -1,37 +1,71 @@
 ---
 - name: Create dir for application
   ansible.builtin.file:
-    path: "{{ app_dir }}"
+    path: "{{ app_base_dir }}"
     state: directory
 
 - name: Set target python version in first directory
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: "pyenv local {{ python_version }}"
-    chdir: "{{ app_dir }}"
+    chdir: "{{ app_base_dir }}"
   environment:
     PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
 
 - name: Copy files to remote
   ansible.builtin.copy:
     src: /media/anishs/restore/adex/new/django
-    dest: "{{ app_dir }}"
+    dest: "{{ app_base_dir }}"
 
-- name: Install virtualenv
-  pip:
-    name: virtualenv
-    executable: pip3
+- name: pip self-update
+  ansible.builtin.pip:
+    name: pip
+    extra_args: --upgrade
 
-- name: Set python virual env
-  command:
-    cmd: virtualenv {{ app_dir }} -p python3
-    creates: "/var/www/app"
+- name: Create python virual env
+  ansible.builtin.command:
+    cmd: pyenv virtualenv {{ python_version }} {{ venv_name }}
+    creates: "{{ ansible_env.HOME }}/.pyenv/versions/{{ venv_name }}"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
 
+- name: Install specified python requirements in indicated (virtualenv)
+  ansible.builtin.pip:
+    requirements: "{{ app_dir }}/requirements.txt"
+    virtualenv_command: pyenv activate {{ venv_name }}
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
 
-# - name: Install npm dependencies
-#   community.general.npm:
-#     path: "{{ app_dir }}"
- 
-# - name: Start pm2
-#   command:
-#     cmd: pm2 start -f index.js
-#     chdir: "{{ app_dir }}"
+- name: Restore database
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: import
+    target: "{{ app_dir }}/world.sql"
+    force: true
+
+- name: Upload Django settings file
+  ansible.builtin.template:
+    src: settings.j2
+    dest: "{{ app_dir }}/panorbit/settings.py"
+
+- name: Make manage.py executable
+  ansible.builtin.file:
+    path: "{{ app_dir }}/manage.py"
+    mode: '0555'
+
+- name: Run MakeMigrations
+  community.general.django_manage:
+    command: makemigrations
+    app_path: "{{ app_dir }}"
+    virtualenv: "{{ ansible_env.HOME }}/.pyenv/versions/{{ venv_name }}"
+
+- name: Run Migrations
+  community.general.django_manage:
+    command: migrate
+    app_path: "{{ app_dir }}"
+    virtualenv: "{{ ansible_env.HOME }}/.pyenv/versions/{{ venv_name }}"
+
+- name: install django-app systemd unit file
+  ansible.builtin.template:
+    src: django-app.j2
+    dest: /etc/systemd/system/django-app.service
+  notify: start django
