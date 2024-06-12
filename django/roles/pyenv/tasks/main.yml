@@ -1,0 +1,41 @@
+---
+- name: Install pyenv dependencies
+  ansible.builtin.apt:
+    pkg:
+     - make
+     - build-essential
+     - libssl-dev
+     - zlib1g-dev
+     - libbz2-dev
+     - libreadline-dev
+     - libsqlite3-dev
+     - wget
+     - curl
+     - llvm
+     - libncursesw5-dev
+     - xz-utils
+     - tk-dev
+     - libxml2-dev
+     - libxmlsec1-dev
+     - libffi-dev
+     - liblzma-dev
+    state: present
+    update_cache: true
+
+- name: Download pyenv script
+  ansible.builtin.get_url:
+    dest: /tmp/pyenv.sh
+    url: https://pyenv.run
+    mode: "0555"
+
+- name: Execute pyenv install script
+  ansible.builtin.shell:
+    cmd: /tmp/pyenv.sh
+    creates: "{{ ansible_env.HOME }}/.pyenv"
+
+- name: Install required python version
+  ansible.builtin.command:
+    cmd: "pyenv install {{ python_version }}"
+    creates: "{{ ansible_env.HOME }}/.pyenv/versions/{{ python_version }}.*"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
